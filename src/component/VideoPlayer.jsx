@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import ReactPlayer from 'react-player';
+import './VideoPlayer.css';
 
 export function VideoPlayer({
   src,
@@ -35,16 +36,18 @@ export function VideoPlayer({
   };
 
   return (
-    <div className="video-player">
-      <ReactPlayer
-        ref={playerRef}
-        url={source}
-        controls
-        width="100%"
-        height="100%"
-        onProgress={handleProgress}
-        onReady={() => onPlayerChange(playerRef.current)}
-      />
+    <div className="video-player-container">
+      <div className="video-player">
+        <ReactPlayer
+          ref={playerRef}
+          url={source}
+          controls
+          width="100%"
+          height="100%"
+          onProgress={handleProgress}
+          onReady={() => onPlayerChange(playerRef.current)}
+        />
+      </div>
     </div>
   );
 }

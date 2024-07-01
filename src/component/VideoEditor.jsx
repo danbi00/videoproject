@@ -80,6 +80,7 @@ const VideoEditor = () => {
             />
             <Button className="video-editor-button" onClick={() => uploadFile.current.click()}>
               비디오 재선택
+              
             </Button>
           </div>
         )}

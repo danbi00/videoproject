@@ -22,8 +22,14 @@
 }
 
 .video-editor-title {
-  font-size: 20px;
+  font-size: 30px;
   color: var(--main-font-color);
+  margin-bottom: 50px; 
+}
+
+
+.video-editor-button {
+  margin-top: 30px; 
 }
 
 .video-editor-button:hover,
@@ -45,17 +51,26 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 50px;
+  border: 2px solid #ccc; 
+  padding: 130px;
+  box-sizing: border-box; 
 }
+
 
 .video-editor-video-img {
   cursor: pointer;
+  width: 100%; 
+  height: auto;
+  max-width: 500px; 
+  
 }
 
 .video-editor-video-btn {
+  margin-top: 50px;
   display: flex;
   justify-content: center;
-  margin-bottom: 130px;
+  margin-bottom: 50px;
 }
 
 .video-editor-slider-section {
@@ -78,4 +93,9 @@
 .time-display span {
   font-size: 14px;
   color: #383838;
+}
+
+.video-editor-video {
+  width: 100%;
+  max-width: 300px; 
 }
