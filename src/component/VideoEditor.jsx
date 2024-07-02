@@ -1,8 +1,7 @@
-import { Button } from "antd";
 import React, { useEffect, useRef, useState } from "react";
-import wide_video_placeholder from "../assets/images/editor/default_upload.png";
+import { Button } from "antd";
 import { createFFmpeg } from "@ffmpeg/ffmpeg";
-import { VideoPlayer } from "./VideoPlayer";
+import VideoPlayer from "./VideoPlayer";
 import { sliderValueToVideoTime } from "../utils/utils";
 import MultiRangeSlider from "./MultiRangeSlider";
 import VideoConversionButton from "./VideoConversionButton";
@@ -24,6 +23,7 @@ const VideoEditor = () => {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    // FFmpeg 로드 여부를 확인하는 useEffect 훅
     if (!ffmpeg.isLoaded()) {
       ffmpeg.load().then(() => {
         setFFmpegLoaded(true);
@@ -34,30 +34,44 @@ const VideoEditor = () => {
   }, []);
 
   useEffect(() => {
-    const min = sliderValues[0];
+    // 비디오 파일이 설정된 경우 슬라이더 값을 기반으로 비디오를 시크
+    if (videoFile) {
+      const min = sliderValues[0];
+      console.log("Slider min value:", min);
 
-    if (min !== undefined && videoPlayerState && videoPlayer) {
-      videoPlayer.seekTo(sliderValueToVideoTime(videoPlayerState.playedSeconds, min), 'seconds');
+      if (min !== undefined && videoPlayerState && videoPlayer && isFinite(min)) {
+        const minTime = sliderValueToVideoTime(videoPlayerState.duration, min);
+        console.log("Seeking to minTime:", minTime);
+        if (isFinite(minTime)) {
+          videoPlayer.seekTo(minTime, 'seconds');
+        }
+      }
     }
-  }, [sliderValues, videoPlayerState, videoPlayer]);
+  }, [sliderValues, videoPlayerState, videoPlayer, videoFile]);
 
   useEffect(() => {
-    if (videoPlayer && videoPlayerState) {
+    // 비디오 파일과 플레이어 상태를 기반으로 비디오를 시크
+    if (videoFile && videoPlayer && videoPlayerState) {
       const [min, max] = sliderValues;
 
-      const minTime = sliderValueToVideoTime(videoPlayerState.playedSeconds, min);
-      const maxTime = sliderValueToVideoTime(videoPlayerState.playedSeconds, max);
+      const minTime = sliderValueToVideoTime(videoPlayerState.duration, min);
+      const maxTime = sliderValueToVideoTime(videoPlayerState.duration, max);
 
-      if (videoPlayerState.playedSeconds < minTime) {
-        videoPlayer.seekTo(minTime, 'seconds');
-      }
-      if (videoPlayerState.playedSeconds > maxTime) {
-        videoPlayer.seekTo(maxTime, 'seconds');
+      console.log("Min time:", minTime, "Max time:", maxTime);
+
+      if (isFinite(minTime) && isFinite(maxTime)) {
+        if (videoPlayerState.playedSeconds < minTime) {
+          videoPlayer.seekTo(minTime, 'seconds');
+        }
+        if (videoPlayerState.playedSeconds > maxTime) {
+          videoPlayer.seekTo(maxTime, 'seconds');
+        }
       }
     }
-  }, [videoPlayerState, videoPlayer, sliderValues]);
+  }, [videoPlayerState, videoPlayer, sliderValues, videoFile]);
 
   useEffect(() => {
+    // 비디오 파일이 없을 때 상태 초기화
     if (!videoFile) {
       setVideoPlayerState(undefined);
     }
@@ -80,7 +94,6 @@ const VideoEditor = () => {
             />
             <Button className="video-editor-button" onClick={() => uploadFile.current.click()}>
               비디오 재선택
-              
             </Button>
           </div>
         )}
@@ -111,7 +124,7 @@ const VideoEditor = () => {
                 <img
                   className="video-editor-video-img"
                   onClick={() => uploadFile.current.click()}
-                  src={wide_video_placeholder}
+                  src={require("../assets/images/editor/default_upload.png")}
                   alt="비디오를 업로드해주세요."
                 />
               </div>

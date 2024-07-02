@@ -2,21 +2,20 @@ import React from "react";
 import { Button } from "antd";
 import { fetchFile } from "@ffmpeg/ffmpeg";
 import { readFileAsBase64, sliderValueToVideoTime } from "../utils/utils";
-import out from "../assets/icons/out.svg";
+import out from "../assets/icons//out.svg";
 import dark_download from "../assets/icons/dark_download.svg";
 import "./VideoConversionButton.css";
 
-function VideoConversionButton({
+const VideoConversionButton = ({
   videoPlayerState,
   sliderValues,
   videoFile,
   ffmpeg,
   onConversionStart = () => {},
   onConversionEnd = () => {},
-}) {
+}) => {
   const convertToGif = async () => {
     if (!videoPlayerState || !videoPlayerState.duration) {
-      console.error("Invalid videoPlayerState or duration is undefined", videoPlayerState);
       onConversionEnd(false);
       return;
     }
@@ -26,106 +25,69 @@ function VideoConversionButton({
     const inputFileName = "input.mp4";
     const outputFileName = "output.gif";
 
-    // 비디오 파일을 메모리로
-    ffmpeg.FS("writeFile", inputFileName, await fetchFile(videoFile));
-
-    const [min, max] = sliderValues;
-    const minTime = sliderValueToVideoTime(videoPlayerState.duration, min);
-    const maxTime = sliderValueToVideoTime(videoPlayerState.duration, max);
-
-    console.log("FFmpeg Command: ", [
-      "-i",
-      inputFileName,
-      "-ss",
-      `${minTime}`,
-      "-to",
-      `${maxTime}`,
-      "-f",
-      "gif",
-      outputFileName,
-    ]);
-
-    // 비디오를 자르고 gif로 
-    await ffmpeg.run(
-      "-i",
-      inputFileName,
-      "-ss",
-      `${minTime}`,
-      "-to",
-      `${maxTime}`,
-      "-f",
-      "gif",
-      outputFileName
-    );
-
-    console.log("FFmpeg Logs: ", ffmpeg.logs);
-
-    // 파일 결과
     try {
-      const data = ffmpeg.FS("readFile", outputFileName);
+      await ffmpeg.FS("writeFile", inputFileName, await fetchFile(videoFile));
+      const [min, max] = sliderValues;
+      const minTime = sliderValueToVideoTime(videoPlayerState.duration, min);
+      const maxTime = sliderValueToVideoTime(videoPlayerState.duration, max);
 
-      // 이미지 URL로 변환
+      await ffmpeg.run(
+        "-i",
+        inputFileName,
+        "-ss",
+        `${minTime}`,
+        "-to",
+        `${maxTime}`,
+        "-f",
+        "gif",
+        outputFileName
+      );
+
+      const data = ffmpeg.FS("readFile", outputFileName);
       const gifUrl = URL.createObjectURL(
         new Blob([data.buffer], { type: "image/gif" })
       );
 
       const link = document.createElement("a");
       link.href = gifUrl;
-      link.setAttribute("download", "");
+      link.setAttribute("download", "output.gif");
       link.click();
     } catch (error) {
-      console.error("Error reading the output file: ", error);
+      console.error("Error during GIF conversion:", error);
     }
 
-    // 종료
     onConversionEnd(false);
   };
 
   const onCutTheVideo = async () => {
     if (!videoPlayerState || !videoPlayerState.duration) {
-      console.error("Invalid videoPlayerState or duration is undefined", videoPlayerState);
       onConversionEnd(false);
       return;
     }
 
     onConversionStart(true);
 
-    const [min, max] = sliderValues;
-    const minTime = sliderValueToVideoTime(videoPlayerState.duration, min);
-    const maxTime = sliderValueToVideoTime(videoPlayerState.duration, max);
-
     const inputFileName = "input.mp4";
     const outputFileName = "output.mp4";
 
-    ffmpeg.FS("writeFile", inputFileName, await fetchFile(videoFile));
-
-    console.log("FFmpeg Command: ", [
-      "-ss",
-      `${minTime}`,
-      "-i",
-      inputFileName,
-      "-t",
-      `${maxTime}`,
-      "-c",
-      "copy",
-      outputFileName,
-    ]);
-
-    await ffmpeg.run(
-      "-ss",
-      `${minTime}`,
-      "-i",
-      inputFileName,
-      "-t",
-      `${maxTime}`,
-      "-c",
-      "copy",
-      outputFileName
-    );
-
-    console.log("FFmpeg Logs: ", ffmpeg.logs);
-
     try {
+      await ffmpeg.FS("writeFile", inputFileName, await fetchFile(videoFile));
+      const [min, max] = sliderValues;
+      const minTime = sliderValueToVideoTime(videoPlayerState.duration, min);
+      const maxTime = sliderValueToVideoTime(videoPlayerState.duration, max);
+
+      await ffmpeg.run(
+        "-ss",
+        `${minTime}`,
+        "-i",
+        inputFileName,
+        "-to",
+        `${maxTime - minTime}`,
+        "-c",
+        "copy",
+        outputFileName
+      );
+
       const data = ffmpeg.FS("readFile", outputFileName);
       const dataURL = await readFileAsBase64(
         new Blob([data.buffer], { type: "video/mp4" })
@@ -133,10 +95,10 @@ function VideoConversionButton({
 
       const link = document.createElement("a");
       link.href = dataURL;
-      link.setAttribute("download", "");
+      link.setAttribute("download", "output.mp4");
       link.click();
     } catch (error) {
-      console.error("Error reading the output file: ", error);
+      console.error("Error during video cutting:", error);
     }
 
     onConversionEnd(false);
@@ -155,6 +117,6 @@ function VideoConversionButton({
       </Button>
     </div>
   );
-}
+};
 
 export default VideoConversionButton;
